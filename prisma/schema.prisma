@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Student {
+  id          String   @id @default(cuid())
+  name        String
+  grade       Int      // 年级 1-6
+  xp          Int      @default(0)
+  points      Int      @default(0)
+  level       Int      @default(1)
+  streak      Int      @default(0)  // 连续打卡天数
+  lastCheckin DateTime?
+  tasks       Task[]
+  completions TaskCompletion[]
+  rewards     Reward[]
+  claims      RewardClaim[]
+  createdAt   DateTime @default(now())
+}
+
+model Task {
+  id               String   @id @default(cuid())
+  title            String
+  subject          String   // 语文 数学 英语 科学
+  type             String   // 打卡 练习 背诵
+  difficulty       String   // 普通 选做 挑战
+  xpReward         Int      @default(10)
+  pointReward      Int      @default(5)
+  estimatedMinutes Int      @default(20)
+  description      String?
+  studentId        String
+  student          Student  @relation(fields: [studentId], references: [id])
+  dueDate          DateTime
+  completions      TaskCompletion[]
+  createdAt        DateTime @default(now())
+}
+
+model TaskCompletion {
+  id          String   @id @default(cuid())
+  taskId      String
+  task        Task     @relation(fields: [taskId], references: [id])
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id])
+  note        String?
+  completedAt DateTime @default(now())
+}
+
+// 奖励道具（家长创建）
+model Reward {
+  id          String        @id @default(cuid())
+  title       String        // 出去玩、一本书、打游戏1小时...
+  description String?       // 详细说明
+  emoji       String        @default("🎁")
+  cost        Int           // 需要多少星钻
+  stock       Int           @default(-1) // -1 = 无限
+  active      Boolean       @default(true)
+  studentId   String
+  student     Student       @relation(fields: [studentId], references: [id])
+  claims      RewardClaim[]
+  createdAt   DateTime      @default(now())
+}
+
+// 兑换记录
+model RewardClaim {
+  id         String   @id @default(cuid())
+  rewardId   String
+  reward     Reward   @relation(fields: [rewardId], references: [id])
+  studentId  String
+  student    Student  @relation(fields: [studentId], references: [id])
+  status     String   @default("pending") // pending | approved | rejected
+  claimedAt  DateTime @default(now())
+  resolvedAt DateTime?
+}
+
+model Poem {
+  id      String @id @default(cuid())
+  title   String
+  author  String
+  dynasty String
+  content String
+  grade   Int    // 1-6 年级
+  tags    String // 逗号分隔
+}
+
+model MathProblem {
+  id         String  @id @default(cuid())
+  question   String
+  answer     String
+  options    String? // JSON 数组，选择题用
+  type       String  // 计算 应用题 判断
+  topic      String  // 分数 几何 整数 方程
+  grade      Int
+  difficulty String  // 普通 挑战
+}
