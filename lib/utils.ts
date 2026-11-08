@@ -1,12 +1,14 @@
-export const subjectConfig: Record<string, { badge: string; icon: string; glow: string; cardClass: string }> = {
-  语文: { badge: "badge-chinese",  icon: "📖", glow: "rgba(251,146,60,0.3)",  cardClass: "glass-card-gold"   },
-  数学: { badge: "badge-math",     icon: "🔢", glow: "rgba(99,102,241,0.3)",  cardClass: "glass-card-purple" },
-  英语: { badge: "badge-english",  icon: "🌍", glow: "rgba(16,185,129,0.3)",  cardClass: "glass-card-green"  },
-  科学: { badge: "badge-science",  icon: "🔬", glow: "rgba(6,182,212,0.3)",   cardClass: "glass-card-cyan"   },
+export const subjectConfig: Record<string, {
+  badge: string; icon: string; color: string; cardClass: string;
+}> = {
+  语文: { badge: "badge-chinese",  icon: "📖", color: "#ff7043", cardClass: "card-chinese" },
+  数学: { badge: "badge-math",     icon: "🔢", color: "#5c6bc0", cardClass: "card-math"    },
+  英语: { badge: "badge-english",  icon: "🌍", color: "#26a69a", cardClass: "card-english" },
+  科学: { badge: "badge-science",  icon: "🔬", color: "#ab47bc", cardClass: "card-science" },
 };
 
 export const difficultyConfig: Record<string, { badge: string; label: string }> = {
-  普通: { badge: "badge-normal",   label: "普通" },
+  普通: { badge: "badge-normal",   label: "普通"    },
   选做: { badge: "badge-optional", label: "选做 ✦" },
   挑战: { badge: "badge-hard",     label: "挑战 🔥" },
 };

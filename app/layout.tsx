@@ -16,10 +16,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="zh-CN">
-      <body className="antialiased" style={{ background: "#0d0d1a" }}>
-        <div className="stars-bg" />
-        <div className="relative mx-auto w-full max-w-[430px] min-h-screen z-10">
-          <main className="pb-20 page-enter">{children}</main>
+      <body className="antialiased" style={{ background: "#12122a", minHeight: "100vh" }}>
+        <div className="relative mx-auto w-full max-w-[430px] min-h-screen">
+          <main className="pb-20">{children}</main>
           <BottomNav />
         </div>
       </body>
