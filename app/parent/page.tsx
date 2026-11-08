@@ -10,7 +10,7 @@ async function getPageData() {
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  const [student, todayTasks, recentCompletions, rewards, pendingClaims] =
+  const [student, todayTasks, recentCompletions, rewards, pendingClaims, templates] =
     await Promise.all([
       prisma.student.findUnique({ where: { id: STUDENT_ID } }),
       prisma.task.findMany({
@@ -33,46 +33,83 @@ async function getPageData() {
         include: { reward: true },
         orderBy: { claimedAt: "asc" },
       }),
+      prisma.taskTemplate.findMany({
+        where: { studentId: STUDENT_ID, active: true },
+        orderBy: { subject: "asc" },
+      }),
     ]);
+
+  const serTask = (t: typeof todayTasks[number]) => ({
+    ...t,
+    completed: t.completions.length > 0,
+    completions: undefined,
+    dueDate: t.dueDate.toISOString(),
+    createdAt: t.createdAt.toISOString(),
+  });
+
+  const serCompletion = (c: typeof recentCompletions[number]) => ({
+    id: c.id,
+    completedAt: c.completedAt.toISOString(),
+    task: {
+      title: c.task.title,
+      subject: c.task.subject,
+      xpReward: c.task.xpReward,
+    },
+  });
+
+  const serReward = (r: typeof rewards[number]) => ({
+    id: r.id,
+    title: r.title,
+    description: r.description,
+    emoji: r.emoji,
+    cost: r.cost,
+    stock: r.stock,
+    createdAt: r.createdAt.toISOString(),
+  });
+
+  const serClaim = (c: typeof pendingClaims[number]) => ({
+    id: c.id,
+    status: c.status,
+    claimedAt: c.claimedAt.toISOString(),
+    resolvedAt: c.resolvedAt?.toISOString() ?? null,
+    reward: serReward(c.reward),
+  });
+
+  const serTemplate = (t: typeof templates[number]) => ({
+    id: t.id,
+    title: t.title,
+    subject: t.subject,
+    type: t.type,
+    difficulty: t.difficulty,
+    xpReward: t.xpReward,
+    estimatedMinutes: t.estimatedMinutes,
+    description: t.description,
+    createdAt: t.createdAt.toISOString(),
+  });
 
   return {
     student,
-    todayTasks: todayTasks.map((t) => ({
-      ...t,
-      completed: t.completions.length > 0,
-      completions: undefined,
-      dueDate: t.dueDate.toISOString(),
-      createdAt: t.createdAt.toISOString(),
-    })),
-    recentCompletions: recentCompletions.map((c) => ({
-      ...c,
-      completedAt: c.completedAt.toISOString(),
-      task: { ...c.task, dueDate: c.task.dueDate.toISOString(), createdAt: c.task.createdAt.toISOString() },
-    })),
-    rewards: rewards.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })),
-    pendingClaims: pendingClaims.map((c) => ({
-      ...c,
-      claimedAt: c.claimedAt.toISOString(),
-      resolvedAt: c.resolvedAt?.toISOString() ?? null,
-      reward: { ...c.reward, createdAt: c.reward.createdAt.toISOString() },
-    })),
+    todayTasks:         todayTasks.map(serTask),
+    recentCompletions:  recentCompletions.map(serCompletion),
+    rewards:            rewards.map(serReward),
+    pendingClaims:      pendingClaims.map(serClaim),
+    templates:          templates.map(serTemplate),
   };
 }
 
 export default async function ParentPage() {
   await connection();
-  const { student, todayTasks, recentCompletions, rewards, pendingClaims } =
-    await getPageData();
-
-  if (!student) return null;
+  const data = await getPageData();
+  if (!data.student) return null;
 
   return (
     <ParentClient
-      student={{ ...student, lastCheckin: student.lastCheckin?.toISOString() ?? null, createdAt: student.createdAt.toISOString() }}
-      todayTasks={todayTasks}
-      recentCompletions={recentCompletions}
-      rewards={rewards}
-      pendingClaims={pendingClaims}
+      student={{ ...data.student, lastCheckin: data.student.lastCheckin?.toISOString() ?? null, createdAt: data.student.createdAt.toISOString() }}
+      todayTasks={data.todayTasks}
+      recentCompletions={data.recentCompletions}
+      rewards={data.rewards}
+      pendingClaims={data.pendingClaims}
+      templates={data.templates}
     />
   );
 }

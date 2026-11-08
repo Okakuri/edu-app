@@ -17,10 +17,28 @@ model Student {
   streak      Int      @default(0)  // 连续打卡天数
   lastCheckin DateTime?
   tasks       Task[]
+  templates   TaskTemplate[]
   completions TaskCompletion[]
   rewards     Reward[]
   claims      RewardClaim[]
   createdAt   DateTime @default(now())
+}
+
+// 家长设置的固定任务模板（每天自动生成）
+model TaskTemplate {
+  id               String   @id @default(cuid())
+  title            String
+  subject          String
+  type             String
+  difficulty       String
+  xpReward         Int      @default(10)
+  pointReward      Int      @default(5)
+  estimatedMinutes Int      @default(20)
+  description      String?
+  active           Boolean  @default(true)
+  studentId        String
+  student          Student  @relation(fields: [studentId], references: [id])
+  createdAt        DateTime @default(now())
 }
 
 model Task {
